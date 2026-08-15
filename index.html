@@ -105,7 +105,16 @@
     max-width:920px;
   }
 
-  .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:600;font-size:17px;letter-spacing:-0.01em;flex-shrink:0;}
+  .logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:var(--font-display);
+    font-weight:1000;
+    font-size:24px;
+    letter-spacing:-0.01em;
+    flex-shrink:0;
+  }
   .logo .mark{
     filter: invert(1);
     width:38px;
@@ -487,7 +496,8 @@
     left:0;right:0;
     top:var(--fold-start, 0px);
     height:calc(var(--fold-end, 0px) - var(--fold-start, 0px));
-    background:linear-gradient(to bottom, transparent, var(--bg) 88%);
+    background:linear-gradient(to bottom, transparent, var(--bg) 60%);
+    background:linear-gradient(to transp, transparent, var(--bg) 10%);
     pointer-events:none;
   }
   .view-more-row{
@@ -620,7 +630,7 @@
   .how-grid{
     display:grid;
     grid-template-columns:repeat(3,1fr);
-    gap:1px;
+    gap:2px;
     background:var(--border);
     border:1px solid var(--border);
     border-radius:14px;
@@ -750,7 +760,11 @@
 
 <div class="nav-slot">
   <nav id="nav">
-    <div class="logo"><img src="assets/Frame.svg" class="mark">Frame</div>
+    <a href="#home">
+    <div class="logo">
+        <img src="assets/Frame.svg" class="mark"> Frame
+    </div>
+    </a>
     <div class="nav-links">
       <a href="#library">Library</a>
       <a href="#how">How it works</a>
@@ -774,7 +788,7 @@
 
 <div class="wrap">
 
-  <header class="hero">
+  <header id="home" class="hero">
     <div>
       <div class="eyebrow hero-load">Overlay editor for streamers</div>
       <h1 class="hero-load">Design your stream.<br>Move things until <em>it feels right.</em></h1>
@@ -1178,10 +1192,10 @@
     <div class="section-head reveal">
       <div class="eyebrow">Pricing</div>
       <h2>It's free. All of it. Forever.</h2>
-      <p>We could've split the library into tiers and charged you $15/mo to unlock the alerts you already saw in the demo. We didn't. Mostly because we don't think an overlay editor is worth a subscription — and we're kind of proud of that.</p>
+      <p>We could've split the library into tiers and charged you $15/mo to unlock the alerts you already saw in the demo. We didn't. Mostly because we don't think an overlay editor is worth a subscription — lol</p>
     </div>
 
-    <div class="pricing-card reveal">
+    <div class="pricing-card reveal" price-card>
       <div class="brackets"><span></span><span></span><span></span><span></span></div>
       <div class="pricing-top">
         <span class="pricing-eyebrow">FRAME / ALL ACCESS</span>
@@ -1195,7 +1209,7 @@
         <li>New overlays ship to the library at no extra cost, no upsell email attached</li>
       </ul>
       <a href="#" class="btn btn-primary" data-magnetic>Start building free</a>
-      <span class="pricing-fineprint">No card on signup. No trial clock. No "talk to sales" button hiding the price.</span>
+      <span class="pricing-fineprint">No card or signup. No trial clock. No payment at all.</span>
     </div>
   </section>
 
@@ -1291,19 +1305,12 @@
 </div>
 
 <script>
-  // --- auto-number card tags + stagger the ambient drift animation ---
-  // This is the piece that used to require a hand-written CSS rule
-  // (.card:nth-child(N){animation-delay:...}) for every single card.
-  // Now it's fully automatic: drop a new <div class="card" data-card> block
-  // anywhere in #cardGrid — with an empty <span class="tag"></span> inside —
-  // and this loop numbers it and staggers its float animation for you.
   (function(){
     const cards = document.querySelectorAll('[data-card]');
-    const DRIFT_CYCLE = 8;      // matches `card-drift 8s` in CSS
-    const DRIFT_STEP = -1.37;   // offset per card, wraps around the 8s loop
+    const DRIFT_CYCLE = 8;
+    const DRIFT_STEP = -1.37;
 
     cards.forEach((card, i) => {
-      // stagger the floating idle animation so cards don't move in sync
       const delay = (i * DRIFT_STEP) % DRIFT_CYCLE;
       card.style.setProperty('--drift-delay', delay + 's');
 
@@ -1412,6 +1419,43 @@
           const rotY = ((x - cx) / cx) * 6;
           const rotX = -((y - cy) / cy) * 6;
           card.style.transform = `perspective(700px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-2px)`;
+        });
+      });
+
+      card.addEventListener('mouseleave', () => {
+        if (raf) cancelAnimationFrame(raf);
+        raf = null;
+        rect = null;
+        card.style.transform = '';
+        card.classList.remove('is-tilting');
+      });
+    });
+  }
+
+  // --- Price Card ---
+  if (hasFinePointer) {
+    document.querySelectorAll('[price-card]').forEach(card => {
+      let rect = null;
+      let raf = null;
+
+      card.addEventListener('mouseenter', () => {
+        rect = card.getBoundingClientRect();
+        card.classList.add('is-tilting');
+      });
+
+      card.addEventListener('mousemove', e => {
+        if (!rect) return;
+        if (raf) cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => {
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          card.style.setProperty('--mx', x + 'px');
+          card.style.setProperty('--my', y + 'px');
+
+          const cx = rect.width / 2, cy = rect.height / 2;
+          const rotY = ((x - cx) / cx) * 6;
+          const rotX = -((y - cy) / cy) * 6;
+          card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-2px)`;
         });
       });
 
